@@ -5,8 +5,6 @@ def is_number(token: str) -> bool:
         return True
     except (ValueError, TypeError):
         return False
-
-
 def parentheses_balanced(tokens: list) -> bool:
     """Makes sure that all the parentheses are set and nothing is closed prematurely or left open"""
     count = 0

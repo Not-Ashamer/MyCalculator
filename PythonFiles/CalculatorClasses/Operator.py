@@ -1,4 +1,4 @@
-from . import OpType
+from .OpType import OpType
 from . import HelperMethods
 from PythonFiles.Exceptions.InvalidOperatorUsageException import InvalidOperatorUsageException
 
@@ -83,14 +83,14 @@ class Operator:
         if HelperMethods.is_number(token):
             return True
         # 3. It is a Prefix operator (e.g., ~5 is a value even if you cant see the 5)
-        if self._is_prefix(token, operators_dict):
+        if self.is_prefix(token, operators_dict):
             return True
 
         return False
-
-    def _is_postfix(self, token: str, operators_dict: dict) -> bool:
+    @staticmethod
+    def is_postfix(token: str, operators_dict: dict) -> bool:
         return token in operators_dict and operators_dict[token].op_type == OpType.POSTFIX
-
-    def _is_prefix(self, token: str, operators_dict: dict) -> bool:
+    @staticmethod
+    def is_prefix(token: str, operators_dict: dict) -> bool:
         return token in operators_dict and operators_dict[token].op_type == OpType.PREFIX
 
