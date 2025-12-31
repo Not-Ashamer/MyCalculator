@@ -4,7 +4,7 @@ from PythonFiles.Exceptions.InvalidOperatorUsageException import InvalidOperator
 
 
 class Operator:
-    def __init__(self, symbol: str, precedence: int, operation, op_type: int,
+    def __init__(self, symbol: str, precedence: float, operation, op_type: int,
                  associativity: str = 'L',
                  # DEFAULT: Infix/Prefix usually accept a Prefix to their right (e.g. 5 + ~5)
                  accepted_right_types: list = None,
@@ -43,7 +43,7 @@ class Operator:
                 )
 
             # Check validity using accepted_left_types
-            if not self._is_valid_neighbor(left_token, operators_dict, self.accepted_left_types, check_left=True):
+            if not self._is_valid_neighbor(left_token, operators_dict, self.accepted_left_types, checking_left=True):
                 raise InvalidOperatorUsageException(
                     f"Syntax Error: Invalid token '{left_token}' before '{self.symbol}'."
                 )
@@ -58,12 +58,12 @@ class Operator:
                 )
 
             # Check validity using accepted_right_types
-            if not self._is_valid_neighbor(right_token, operators_dict, self.accepted_right_types, check_left=False):
+            if not self._is_valid_neighbor(right_token, operators_dict, self.accepted_right_types, checking_left=False):
                 raise InvalidOperatorUsageException(
                     f"Syntax Error: Invalid token '{right_token}' after '{self.symbol}'."
                 )
 
-    def _is_valid_neighbor(self, token: str, operators_dict: dict, allowed_op_types: list, check_left: bool) -> bool:
+    def _is_valid_neighbor(self, token: str, operators_dict: dict, allowed_op_types: list, checking_left: bool) -> bool:
         """
         The universal validator.
         check_left=True  -> Validating the token to the Left (Looking for End of Value).
@@ -71,9 +71,9 @@ class Operator:
         """
         if HelperMethods.is_number(token):
             return True
-        if check_left and token == ")":
+        if checking_left and token == ")":
             return True
-        if not check_left and token == "(":
+        if not checking_left and token == "(":
             return True
         if token in operators_dict:
             neighbor_op = operators_dict[token]

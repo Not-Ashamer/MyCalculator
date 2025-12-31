@@ -1,6 +1,6 @@
 from Exceptions.BasicInvalidExpressionException import BasicInvalidExpressionException
 from .Operator import Operator
-from .CalculatorEnums import OpType, Associativity
+from .CalculatorEnums import OpType
 from math import pow #AND NOTHING ELSE!!!!
 from . import OperationMethods
 from . import HelperMethods
@@ -21,14 +21,14 @@ def _init_operators() -> dict:
         "-": Operator("-", 1, lambda a, b: a - b, OpType.INFIX),
         "*": Operator("*", 2, lambda a, b: a * b, OpType.INFIX),
         "/": Operator("/", 2, lambda a, b: a / b, OpType.INFIX),
-        "^": Operator("^", 3, lambda a, b: pow(a, b), OpType.INFIX),
+        "^": Operator("^", 3, lambda a, b: pow(a, b), OpType.INFIX, associativity='R'),
         "!": Operator("!", 6, lambda a: OperationMethods.factorial(a), OpType.POSTFIX),
-        "~": Operator("~", 6, lambda a: -a, OpType.PREFIX),
+        "~": Operator("~", 6, lambda a: -a, OpType.PREFIX, associativity='R',accepted_right_types=[]),
         "@": Operator("@", 5, lambda a, b: OperationMethods.average(a, b), OpType.INFIX),
         "&": Operator("&", 5, lambda a, b: OperationMethods.minimum(a, b), OpType.INFIX),
         "$": Operator("$", 5, lambda a, b: OperationMethods.maximum(a, b), OpType.INFIX),
         "%": Operator("%", 4, lambda a, b: a % b, OpType.INFIX),
-        "unary_minus": Operator("unary_minus",1, lambda a: -a, OpType.PREFIX)
+        "unary_minus": Operator("unary_minus",2.5, lambda a: -a, OpType.PREFIX, associativity='R')
         # Add more here
     }
     return mydict
@@ -65,56 +65,73 @@ class Calculator:
     def _tokenize(self, expression: str) -> list:
         """
         Scans the input string and converts it into a list of tokens.
-        Example: "5 + 33" -> ["5", "+", "33"]
+        Handles complex minus logic (Signs vs Operators).
         """
-        expression = self._convert_unary_minus(list(expression))
+
         tokens = []
         i = 0
         length = len(expression)
 
         while i < length:
-            token = expression[i]
-            # sum numbers
-            if token.isdigit() or token == '.' or self._is_part_of_sign(expression, i):
-                minus_count = 0
-                if self._is_part_of_sign(expression, i):
-                    minus_count += 1  # Count the first minus
-                i += 1
-                #count all the minuses instead of adding them in
-                while i < length and self._is_part_of_sign(expression, i):
-                    minus_count += 1
-                    i += 1
+            char = expression[i]
 
-                #get digit part of the number
-                digit_part = ""
-                #handle the case where the first char acquired was actually a digit and not a minus
-                if token.isdigit() or token == '.':
-                    digit_part = token
-                #build digit
-                while i < length and (expression[i].isdigit() or expression[i] == '.'):
-                    digit_part += expression[i]
-                    i += 1
-
-                #if minus_count is odd (1, 3, 5...), we prepend a single "-" else nothing
-                final_number_str = digit_part
-                if minus_count % 2 != 0:
-                    final_number_str = "-" + digit_part
-                tokens.append(final_number_str)
+            # 1. Handle Numbers (Digits or dots)
+            if HelperMethods.is_digit(char) or char == '.':
+                number_str, new_i = self._read_number(expression, i)
+                tokens.append(number_str)
+                i = new_i
                 continue
 
-            #handle Operators and Parentheses
-            #assume single-character operators
-            if token in self.operators or token in "()":
-                tokens.append(token)
+            # 2. Handle Minuses
+            if char == '-':
+                # Check if this minus is a "Sign" (glued to the next number)
+                if self._is_part_of_sign(tokens):
+                    minus_count = 0
+                    while i < length and expression[i] == '-':
+                        minus_count += 1
+                        i += 1
+
+                    if i < length and (HelperMethods.is_digit(expression[i]) or expression[i] == '.'):
+                        number_str, new_i = self._read_number(expression, i)
+
+                        if minus_count % 2 != 0:
+                            number_str = "-" + number_str
+
+                        tokens.append(number_str)
+                        i = new_i
+                    else:
+                        for _ in range(minus_count):
+                            tokens.append("unary_minus")
+                    continue
+
+                else:
+                    if not tokens or tokens[-1] == "(" or (
+                            tokens[-1] in self.operators and self.operators[tokens[-1]].op_type != OpType.POSTFIX):
+                        tokens.append("unary_minus")
+                    else:
+                        tokens.append("-")
+
+                    i += 1
+                    continue
+
+            # 3. Handle Other Operators and Parentheses
+            if char in self.operators or char in "()":
+                tokens.append(char)
                 i += 1
                 continue
 
+            # 4. Handle Unrecognized Characters
+            raise UnrecognizedCharacterException(f"The character '{char}' at index {i} is not recognized.")
 
-
-            #if unrecognized character we have an exception
-            raise UnrecognizedCharacterException(f"The character {token} at index {i} is not recognized.")
         return tokens
 
+    def _read_number(self, expression: str, i: int) -> tuple:
+        """Helper to consume a number from the expression."""
+        start = i
+        # simple check for digit or dot
+        while i < len(expression) and (HelperMethods.is_digit(expression[i]) or expression[i] == '.'):
+            i += 1
+        return "".join(expression[start:i]), i
     def _validate_expression(self, tokens: list) -> bool:
         """
         Returns True if the expression is syntactically valid, False otherwise.
@@ -180,13 +197,8 @@ class Calculator:
         token = tokens[i]
         left = tokens[i - 1] if i > 0 else None
         right = tokens[i + 1] if i + 1 < len(tokens) else None
-
-        try:
-            self.operators[token].check_neighbors(left, right, self.operators)
-            return True
-        except Exception:
-            return False
-
+        self.operators[token].check_neighbors(left, right, self.operators)
+        return True
     def _is_unary_negative(self, expression: list, index : int) -> bool:
         """Determines if the given minus operator is binary or unary"""
         if index<0 or type(expression[index])!=str:
@@ -203,49 +215,37 @@ class Calculator:
                 return self.operators[expression[previndex]].op_type != OpType.POSTFIX
 
         return True
-    def _is_part_of_sign(self,expression: list, index : int) -> bool:
-        """Determines if the given minus is part of the sign rather than an operator.
-            A minus is only explicitly part of the sign if it is to the right of a prefix operator"""
-        if expression[index] != "unary_minus":
-            return False
-        if index>0:
-            previndex = index-1
-            if expression[previndex]in self.operators:
-                return self.operators[expression[previndex]].op_type==OpType.PREFIX
-        return True
+
+    def _is_part_of_sign(self, tokens: list) -> bool:
+        """
+        Returns True if a minus at the current position should be treated as part of a number (Sign).
+        Rule: True if Preceding token is an Infix or Prefix Operator.
+        Rule: False if Preceding token is Number, ')', Postfix, or if we are at Start.
+        """
+        if not tokens:
+            return False  # Start of line -> Unary Operator (Not Sign)
+
+        prev = tokens[-1]
+
+        if prev == "(":
+            return False  # (-5) -> ( unary 5 ). Safer for precedence.
+
+        if HelperMethods.is_number(prev) or prev == ")":
+            return False  # 5 - 5 -> Binary Minus
+
+        if prev in self.operators:
+            op_type = self.operators[prev].op_type
+            if op_type == OpType.POSTFIX:
+                return False  # 5! - 5 -> Binary Minus
+
+            return True  # 5 * -5 or ~ -5 -> Sign
+
+        return False
 
     def _simplify_expression(self, expression: str) -> str:
-        """Returns a string without unecessary characters, which makes tokenization easier and will more clearly find problems"""
+        """Returns a string without unnecessary characters, which makes tokenization easier and will more clearly find problems"""
         expression = expression.replace(" ", "") #remove whitespace entirely
-        expression = self._compress_minuses(expression)
         return expression
-    def _compress_minuses(self, expression: str) -> str:
-        """This program squishes repeated minus signs, where ----- is the same as -,
-        and ------- is the same as -- because it's unknown yet whether either of the minuses are unary or binary"""
-        compressed =[]
-        i=0
-        while i<len(expression):
-            char = expression[i]
-            if char == "-":
-                count = 1
-                i+=1
-                while(i < len(expression)):
-                    if not (expression[i]=="-"):
-                        break
-                    count += 1
-                    i+=1
-                compressed.append("-")
-                if count%2==0:
-                    compressed.append("-")
-            else:
-                compressed.append(char)
-                i+=1
-        return "".join(compressed)
-    def _convert_unary_minus(self, tokens : list) -> list:
-        i=0
-        for i in range(len(tokens)):
-            if(self._is_unary_negative(tokens,i)):
-                tokens[i] = "unary_minus"
-        return tokens
+
 
 
