@@ -1,13 +1,26 @@
-from .OpType import OpType
+from .CalculatorEnums import OpType
 from . import HelperMethods
 from PythonFiles.Exceptions.InvalidOperatorUsageException import InvalidOperatorUsageException
 
+
 class Operator:
-    def __init__(self, symbol:str, precedence:int, operation, op_type:int):
+    def __init__(self, symbol: str, precedence: int, operation, op_type: int,
+                 associativity: str = 'L',
+                 # DEFAULT: Infix/Prefix usually accept a Prefix to their right (e.g. 5 + ~5)
+                 accepted_right_types: list = None,
+                 # DEFAULT: Infix/Postfix usually accept a Postfix to their left (e.g. 5! + 5)
+                 accepted_left_types: list = None):
+
         self.symbol = symbol
         self.precedence = precedence
         self.operation = operation
         self.op_type = op_type
+        self.associativity = associativity
+
+        # Set defaults if None provided
+        # By default, we allow standard behavior (Prefix on right, Postfix on left)
+        self.accepted_right_types = accepted_right_types if accepted_right_types is not None else [OpType.PREFIX]
+        self.accepted_left_types = accepted_left_types if accepted_left_types is not None else [OpType.POSTFIX]
 
     def apply(self, a, b=None):
         """This function is used to call the operation it's supposed to do based on how many numbers it's supposed to take"""
@@ -17,80 +30,60 @@ class Operator:
 
     def check_neighbors(self, left_token: str, right_token: str, operators_dict: dict) -> None:
         """
-        Makes sure the operator only receives values it can't disprove are valid (it does not actually know
-        if the operator on the left or right will return a number, but by running across every operator eventually,
-        so long as every singe one is valid with incomplete information it will be valid overall).
+        Validates neighbors using the configuration lists (accepted_left_types / accepted_right_types).
         """
 
-        # logic if operator is postfix
-        # Rule: Must have a value to the Left. Right side doesn't matter here.
-        if self.op_type == OpType.POSTFIX:
-            if left_token is None or not self._is_valid_left_neighbor(left_token, operators_dict):
+        # 1. CHECK LEFT SIDE
+        # Required for: INFIX (5 + 5) and POSTFIX (5!)
+        if self.op_type in [OpType.INFIX, OpType.POSTFIX]:
+            # Error: Missing Token
+            if left_token is None:
                 raise InvalidOperatorUsageException(
-                    f"Syntax Error: Postfix operator '{self.symbol}' must follow a number or ')'."
+                    f"Syntax Error: Operator '{self.symbol}' is missing a value on the left."
                 )
 
-        # logic if operator is prefix
-        # Rule: Must have a value to the Right. Left side doesn't matter here.
-        elif self.op_type == OpType.PREFIX:
-            if right_token is None or not self._is_valid_right_neighbor(right_token, operators_dict):
-                raise InvalidOperatorUsageException(
-                    f"Syntax Error: Prefix operator '{self.symbol}' must precede a number or '('."
-                )
-
-        # logic for infix
-        # Rule: Must have values on BOTH sides.
-        elif self.op_type == OpType.INFIX:
-            # 1. Check existence
-            if left_token is None or right_token is None:
-                raise InvalidOperatorUsageException(
-                    f"Syntax Error: Operator '{self.symbol}' is missing an operand."
-                )
-
-            # 2. Check Left (Must be number, ')', or Postfix)
-            if not self._is_valid_left_neighbor(left_token, operators_dict):
+            # Check validity using accepted_left_types
+            if not self._is_valid_neighbor(left_token, operators_dict, self.accepted_left_types, check_left=True):
                 raise InvalidOperatorUsageException(
                     f"Syntax Error: Invalid token '{left_token}' before '{self.symbol}'."
                 )
 
-            # 3. Check Right (Must be number, '(', or Prefix)
-            if not self._is_valid_right_neighbor(right_token, operators_dict):
+        # 2. CHECK RIGHT SIDE
+        # Required for: INFIX (5 + 5) and PREFIX (~5)
+        if self.op_type in [OpType.INFIX, OpType.PREFIX]:
+            # Error: Missing Token
+            if right_token is None:
+                raise InvalidOperatorUsageException(
+                    f"Syntax Error: Operator '{self.symbol}' is missing a value on the right."
+                )
+
+            # Check validity using accepted_right_types
+            if not self._is_valid_neighbor(right_token, operators_dict, self.accepted_right_types, check_left=False):
                 raise InvalidOperatorUsageException(
                     f"Syntax Error: Invalid token '{right_token}' after '{self.symbol}'."
                 )
 
-
-    def _is_valid_left_neighbor(self, token: str, operators_dict: dict) -> bool:
-        """Checks if the token on the LEFT acts as a valid value end-point."""
-        # 1. It is a closing parenthesis (which should return a number)
-        if token == ")":
-            return True
-        # 2. It is a number
+    def _is_valid_neighbor(self, token: str, operators_dict: dict, allowed_op_types: list, check_left: bool) -> bool:
+        """
+        The universal validator.
+        check_left=True  -> Validating the token to the Left (Looking for End of Value).
+        check_left=False -> Validating the token to the Right (Looking for Start of Value).
+        """
         if HelperMethods.is_number(token):
             return True
-        # 3. It is a Postfix operator (e.g., 5! is a value even if you cant see the 5)
-        if self.is_postfix(token, operators_dict):
+        if check_left and token == ")":
             return True
-
-        return False
-
-    def _is_valid_right_neighbor(self, token: str, operators_dict: dict) -> bool:
-        """Checks if the token on the RIGHT acts as a valid value start-point."""
-        # 1. It is an opening parenthesis
-        if token == "(":
+        if not check_left and token == "(":
             return True
-        # 2. It is a number
-        if HelperMethods.is_number(token):
-            return True
-        # 3. It is a Prefix operator (e.g., ~5 is a value even if you cant see the 5)
-        if self.is_prefix(token, operators_dict):
-            return True
-
+        if token in operators_dict:
+            neighbor_op = operators_dict[token]
+            if neighbor_op.op_type in allowed_op_types:
+                return True
         return False
     @staticmethod
     def is_postfix(token: str, operators_dict: dict) -> bool:
         return token in operators_dict and operators_dict[token].op_type == OpType.POSTFIX
+
     @staticmethod
     def is_prefix(token: str, operators_dict: dict) -> bool:
         return token in operators_dict and operators_dict[token].op_type == OpType.PREFIX
-

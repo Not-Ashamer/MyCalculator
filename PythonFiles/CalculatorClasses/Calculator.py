@@ -1,6 +1,6 @@
 from Exceptions.BasicInvalidExpressionException import BasicInvalidExpressionException
 from .Operator import Operator
-from .OpType import OpType
+from .CalculatorEnums import OpType, Associativity
 from math import pow #AND NOTHING ELSE!!!!
 from . import OperationMethods
 from . import HelperMethods
