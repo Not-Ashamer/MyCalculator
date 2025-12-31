@@ -69,7 +69,7 @@ class Operator:
         if HelperMethods.is_number(token):
             return True
         # 3. It is a Postfix operator (e.g., 5! is a value even if you cant see the 5)
-        if self._is_postfix(token, operators_dict):
+        if self.is_postfix(token, operators_dict):
             return True
 
         return False

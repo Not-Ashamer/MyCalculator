@@ -6,7 +6,33 @@ from . import OperationMethods
 from . import HelperMethods
 from Exceptions.UnrecognizedCharacterException import UnrecognizedCharacterException
 
-# TODO: here we import the functions we make manually like average or negation
+
+def _is_valid_atom(token: str) -> bool:
+    """Returns True if the token is anNumber or parenthesis"""
+    return HelperMethods.is_number(token) or token in "()"
+
+
+def _init_operators() -> dict:
+    """
+    Creates and returns the dictionary of supported operators.
+    """
+    mydict={
+        "+": Operator("+", 1, lambda a, b: a + b, OpType.INFIX),
+        "-": Operator("-", 1, lambda a, b: a - b, OpType.INFIX),
+        "*": Operator("*", 2, lambda a, b: a * b, OpType.INFIX),
+        "/": Operator("/", 2, lambda a, b: a / b, OpType.INFIX),
+        "^": Operator("^", 3, lambda a, b: pow(a, b), OpType.INFIX),
+        "!": Operator("!", 6, lambda a: OperationMethods.factorial(a), OpType.POSTFIX),
+        "~": Operator("~", 6, lambda a: -a, OpType.PREFIX),
+        "@": Operator("@", 5, lambda a, b: OperationMethods.average(a, b), OpType.INFIX),
+        "&": Operator("&", 5, lambda a, b: OperationMethods.minimum(a, b), OpType.INFIX),
+        "$": Operator("$", 5, lambda a, b: OperationMethods.maximum(a, b), OpType.INFIX),
+        "%": Operator("%", 4, lambda a, b: a % b, OpType.INFIX),
+        "unary_minus": Operator("unary_minus",1, lambda a: -a, OpType.PREFIX)
+        # Add more here
+    }
+    return mydict
+
 
 class Calculator:
     def __init__(self):
@@ -14,7 +40,7 @@ class Calculator:
         Initializes the Calculator with a registry of supported operators.
         """
         # We store the operators in a dictionary for O(1) lookup.
-        self.operators: dict = self._init_operators()
+        self.operators: dict = _init_operators()
 
     def calculate(self, expression: str) -> float:
         """
@@ -27,7 +53,7 @@ class Calculator:
         tokens: list = self._tokenize(expression)
 
         # Step 2: Validate (using the operator's given values, check that they're valid
-        if  not self._is_valid_expression(tokens):
+        if  not self._validate_expression(tokens):
             raise BasicInvalidExpressionException(f"The expression {expression} is not valid.")
 
         # Step 3: Parse (Shunting-Yard) & Evaluate
@@ -88,28 +114,8 @@ class Calculator:
             #if unrecognized character we have an exception
             raise UnrecognizedCharacterException(f"The character {token} at index {i} is not recognized.")
         return tokens
-    def _init_operators(self) -> dict:
-        """
-        Creates and returns the dictionary of supported operators.
-        """
-        mydict={
-            "+": Operator("+", 1, lambda a, b: a + b, OpType.INFIX),
-            "-": Operator("-", 1, lambda a, b: a - b, OpType.INFIX),
-            "*": Operator("*", 2, lambda a, b: a * b, OpType.INFIX),
-            "/": Operator("/", 2, lambda a, b: a / b, OpType.INFIX),
-            "^": Operator("^", 3, lambda a, b: pow(a, b), OpType.INFIX),
-            "!": Operator("!", 6, lambda a: OperationMethods.factorial(a), OpType.POSTFIX),
-            "~": Operator("~", 6, lambda a: -a, OpType.PREFIX),
-            "@": Operator("@", 5, lambda a, b: OperationMethods.average(a, b), OpType.INFIX),
-            "&": Operator("&", 5, lambda a, b: OperationMethods.minimum(a, b), OpType.INFIX),
-            "$": Operator("$", 5, lambda a, b: OperationMethods.maximum(a, b), OpType.INFIX),
-            "%": Operator("%", 4, lambda a, b: a % b, OpType.INFIX),
-            "unary_minus": Operator("unary_minus",1, lambda a: -a, OpType.PREFIX)
-            # Add more here
-        }
-        return mydict
 
-    def _is_valid_expression(self, tokens: list) -> bool:
+    def _validate_expression(self, tokens: list) -> bool:
         """
         Returns True if the expression is syntactically valid, False otherwise.
         """
@@ -134,17 +140,17 @@ class Calculator:
         while i < len(tokens):
             token = tokens[i]
 
-            # Rule A: Two values cannot be adjacent (e.g., "5 5", "5 (", ") 5")
+            # 1: Two values cannot be adjacent (e.g., "5 5", "5 (", ") 5")
             if self._has_adjacent_value(tokens, i):
                 return False
 
-            # Rule B: Operators must have valid neighbors
+            # 2: Operators must have valid neighbors
             if token in self.operators:
                 if not self._validate_operator_neighbors(tokens, i):
                     return False
 
-            # Rule C: Unknown tokens (Not an operator, number, or parenthesis)
-            elif not self._is_valid_atom(token):
+            # 3: Unknown tokens (Not an operator, number, or parenthesis)
+            elif not _is_valid_atom(token):
                 return False
 
             i += 1
@@ -181,17 +187,13 @@ class Calculator:
         except Exception:
             return False
 
-    def _is_valid_atom(self, token: str) -> bool:
-        """Returns True if the token is anNumber or parenthesis"""
-        return HelperMethods.is_number(token) or token in "()"
-
     def _is_unary_negative(self, expression: list, index : int) -> bool:
         """Determines if the given minus operator is binary or unary"""
-        if(index<0 or type(expression[index])!=str):
+        if index<0 or type(expression[index])!=str:
             return False
         if expression[index] != "-":
             return False
-        if(index>0):
+        if index>0:
             previndex = index - 1
             if expression[previndex] == ")":
                 return False
