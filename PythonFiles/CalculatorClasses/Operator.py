@@ -1,9 +1,9 @@
-import OpType
-from PythonFiles.Exceptions.InvalidOperatorException import InvalidOperatorException
-
+from . import OpType
+from . import HelperMethods
+from PythonFiles.Exceptions.InvalidOperatorUsageException import InvalidOperatorUsageException
 
 class Operator:
-    def __init__(self, symbol:chr, precedence:int, operation: "function", op_type:int):
+    def __init__(self, symbol:str, precedence:int, operation, op_type:int):
         self.symbol = symbol
         self.precedence = precedence
         self.operation = operation
@@ -12,8 +12,8 @@ class Operator:
     def apply(self, a, b=None):
         """This function is used to call the operation it's supposed to do based on how many numbers it's supposed to take"""
         if self.op_type == OpType.POSTFIX or self.op_type == OpType.PREFIX:
-            return self.func(a)
-        return self.func(a, b)
+            return self.operation(a)
+        return self.operation(a, b)
 
     def check_neighbors(self, left_token: str, right_token: str, operators_dict: dict) -> None:
         """
@@ -26,7 +26,7 @@ class Operator:
         # Rule: Must have a value to the Left. Right side doesn't matter here.
         if self.op_type == OpType.POSTFIX:
             if left_token is None or not self._is_valid_left_neighbor(left_token, operators_dict):
-                raise InvalidOperatorException(
+                raise InvalidOperatorUsageException(
                     f"Syntax Error: Postfix operator '{self.symbol}' must follow a number or ')'."
                 )
 
@@ -34,7 +34,7 @@ class Operator:
         # Rule: Must have a value to the Right. Left side doesn't matter here.
         elif self.op_type == OpType.PREFIX:
             if right_token is None or not self._is_valid_right_neighbor(right_token, operators_dict):
-                raise InvalidOperatorException(
+                raise InvalidOperatorUsageException(
                     f"Syntax Error: Prefix operator '{self.symbol}' must precede a number or '('."
                 )
 
@@ -43,19 +43,19 @@ class Operator:
         elif self.op_type == OpType.INFIX:
             # 1. Check existence
             if left_token is None or right_token is None:
-                raise InvalidOperatorException(
+                raise InvalidOperatorUsageException(
                     f"Syntax Error: Operator '{self.symbol}' is missing an operand."
                 )
 
             # 2. Check Left (Must be number, ')', or Postfix)
             if not self._is_valid_left_neighbor(left_token, operators_dict):
-                raise InvalidOperatorException(
+                raise InvalidOperatorUsageException(
                     f"Syntax Error: Invalid token '{left_token}' before '{self.symbol}'."
                 )
 
             # 3. Check Right (Must be number, '(', or Prefix)
             if not self._is_valid_right_neighbor(right_token, operators_dict):
-                raise InvalidOperatorException(
+                raise InvalidOperatorUsageException(
                     f"Syntax Error: Invalid token '{right_token}' after '{self.symbol}'."
                 )
 
@@ -66,7 +66,7 @@ class Operator:
         if token == ")":
             return True
         # 2. It is a number
-        if self._is_number(token):
+        if HelperMethods.is_number(token):
             return True
         # 3. It is a Postfix operator (e.g., 5! is a value even if you cant see the 5)
         if self._is_postfix(token, operators_dict):
@@ -80,21 +80,13 @@ class Operator:
         if token == "(":
             return True
         # 2. It is a number
-        if self._is_number(token):
+        if HelperMethods.is_number(token):
             return True
         # 3. It is a Prefix operator (e.g., ~5 is a value even if you cant see the 5)
         if self._is_prefix(token, operators_dict):
             return True
 
         return False
-
-    def _is_number(self, token: str) -> bool:
-        """Helper to check if a string is a valid float."""
-        try:
-            float(token)
-            return True
-        except (ValueError, TypeError):
-            return False
 
     def _is_postfix(self, token: str, operators_dict: dict) -> bool:
         return token in operators_dict and operators_dict[token].op_type == OpType.POSTFIX

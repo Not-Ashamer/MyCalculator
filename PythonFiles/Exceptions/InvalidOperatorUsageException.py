@@ -1,4 +1,4 @@
-class InvalidOperatorException(Exception):
+class InvalidOperatorUsageException(Exception):
     #Used When a valid operator recieves invalid inputs either to its left or it's right
     def __init__(self, message: str):
         self.message = message
