@@ -1,9 +1,10 @@
-from Exceptions.BasicInvalidExpressionException import BasicInvalidExpressionException
+from PythonFiles.Exceptions import InvalidOperatorUsageException, InvalidParenthesisException
+from PythonFiles.Exceptions.BasicInvalidExpressionException import BasicInvalidExpressionException
 from .Operator import Operator
 from .CalculatorEnums import OpType
 from . import OperationMethods
 from . import HelperMethods
-from Exceptions.UnrecognizedCharacterException import UnrecognizedCharacterException
+from PythonFiles.Exceptions.UnrecognizedCharacterException import UnrecognizedCharacterException
 
 
 def _is_valid_operand(token: str) -> bool:
@@ -69,13 +70,11 @@ class Calculator:
         # Step 2: Validate (using the operator's given values, check that they're valid
         if  not self._validate_expression(tokens):
             raise BasicInvalidExpressionException(f"The expression {expression} is not valid.")
-        print("Before shunting yard: "+str(tokens))
+        #print("Before shunting yard: "+str(tokens))
         # Step 3: Parse (Shunting-Yard) & Evaluate
         tokens = self._shunting_yard(tokens)
-        print(f"Debug Tokens: {tokens}") # Temporary for testing
-        ans = self._evaluate_postfix(tokens)
-        return ans
-
+        #print(f"Debug Tokens: {tokens}") # Temporary for testing
+        return self._evaluate_postfix(tokens)
     def _tokenize(self, expression: str) -> list:
         """
         Scans the input string and converts it into a list of tokens.
@@ -152,12 +151,11 @@ class Calculator:
 
         # 2. Check Parentheses Balance
         if not HelperMethods.parentheses_balanced(tokens):
-            # You might want to raise a specific exception here instead
-            return False
+            raise InvalidParenthesisException("The parentheses are not balanced")
 
         # 3. Check Sequence Rules (Adjacent values, Operator neighbors, etc.)
         if not self._validate_token_sequence(tokens):
-            return False
+            raise BasicInvalidExpressionException("The expression is invalid.")
 
         return True
 
@@ -275,6 +273,8 @@ class Calculator:
             if item == ")":
                 while stack[-1] != "(":
                     queue.append(stack.pop())
+                if not stack:
+                    raise BasicInvalidExpressionException(f"Attempted pop from an empty stack!")
                 stack.pop()
                 continue
             raise UnrecognizedCharacterException("Unrecognized character in expression.")
@@ -283,21 +283,33 @@ class Calculator:
         return queue
 
     def _evaluate_postfix(self, tokens: list) -> float:
-        stack =[]
+        stack = []
         for item in tokens:
             if HelperMethods.is_number(item):
                 stack.append(item)
                 continue
+
             if item in self.operators:
-                if self.operators[item].op_type == OpType.INFIX:
+                op = self.operators[item]
+                required_operands = 2 if op.op_type == OpType.INFIX else 1
+
+                if len(stack) < required_operands:
+                    raise InvalidParenthesisException("Missing values inside parentheses or incomplete expression.")
+
+                if op.op_type == OpType.INFIX:
                     b = float(stack.pop())
-                    a=float(stack.pop())
-                    stack.append(self.operators[item].apply(a,b))
+                    a = float(stack.pop())
+                    stack.append(op.apply(a, b))
                 else:
-                    a=float(stack.pop())
-                    stack.append(self.operators[item].apply(a))
+                    a = float(stack.pop())
+                    stack.append(op.apply(a))
                 continue
-            raise UnrecognizedCharacterException("Value in postfix expression that is not a number or operator!")
-        if len(stack)==0:
-            raise IndexError("There are no values in postfix expression. Only Parentheses!!!")
-        return stack.pop()
+
+            raise UnrecognizedCharacterException(f"Unknown token in evaluator: {item}")
+
+        if len(stack) != 1:
+            if len(stack) == 0:
+                raise InvalidParenthesisException("Empty parentheses are not allowed.")
+            raise BasicInvalidExpressionException("Invalid expression: Stack did not resolve to a single value.")
+
+        return float(stack.pop())

@@ -25,6 +25,10 @@ def modulus(a:float,b:float)->float:
 def exponent(a:float,b:float)->float:
     if a is None or b is None:
         raise ValueError(f"a is {a} and b is {b} in exponent")
+    if a < 0 and (-1<b<1 and b!=0):
+        raise ValueError(f"ERROR: {a} is negative, cannot calculate root of negative number ")
+    if a==0 and b==0:
+        raise ValueError(f"ERROR: 0^0 is undefined")
     return pow(a,b)
 def negation(a:float)->float:
     if a is None:
@@ -32,9 +36,11 @@ def negation(a:float)->float:
     return -a
 def factorial(n:float)->float:
     if n<0:
-        raise ValueError("Factorial of negative number")
-    if int(n)!=n:
+        raise ValueError("Factorial is not defined for negative numbers")
+    if n!=int(n):
         raise ValueError(f"Factorial of non integer number {n}")
+    if n==0 or n==1:
+        return 1
     n=int(n)
     factorial_sum=1
     for i in range(2,n+1):

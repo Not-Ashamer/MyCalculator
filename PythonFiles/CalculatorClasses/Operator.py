@@ -58,13 +58,13 @@ class Operator:
             # Error: Missing Token
             if left_token is None:
                 raise InvalidOperatorUsageException(
-                    f"Syntax Error: Operator '{self.symbol}' is missing a value on the left."
+                    f"Error: Operator '{self.symbol}' is missing a value on the left."
                 )
 
             # Check validity using accepted_left_types
             if not _is_valid_neighbor(left_token, operators_dict, self.accepted_left_types, checking_left=True):
                 raise InvalidOperatorUsageException(
-                    f"Syntax Error: Invalid token '{left_token}' before '{self.symbol}'."
+                    f"Error: Invalid token '{left_token}' before '{self.symbol}'."
                 )
 
         # 2. CHECK RIGHT SIDE
@@ -73,13 +73,13 @@ class Operator:
             # Error: Missing Token
             if right_token is None:
                 raise InvalidOperatorUsageException(
-                    f"Syntax Error: Operator '{self.symbol}' is missing a value on the right."
+                    f"Error: Operator '{self.symbol}' is missing a value on the right."
                 )
 
             # Check validity using accepted_right_types
             if not _is_valid_neighbor(right_token, operators_dict, self.accepted_right_types, checking_left=False):
                 raise InvalidOperatorUsageException(
-                    f"Syntax Error: Invalid token '{right_token}' after '{self.symbol}'."
+                    f"Error: Invalid token '{right_token}' after '{self.symbol}'."
                 )
 
     @staticmethod

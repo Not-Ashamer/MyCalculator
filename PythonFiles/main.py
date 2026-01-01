@@ -1,22 +1,35 @@
 from PythonFiles.CalculatorClasses.Calculator import Calculator
-
-# "+": Operator("+", 1, lambda a, b: a + b, OpType.INFIX),
-# "-": Operator("-", 1, lambda a, b: a - b, OpType.INFIX),
-# "*": Operator("*", 2, lambda a, b: a * b, OpType.INFIX),
-# "/": Operator("/", 2, lambda a, b: a / b, OpType.INFIX),
-# "^": Operator("^", 3, lambda a, b: pow(a, b), OpType.INFIX, associativity='R'),
-# "!": Operator("!", 6, lambda a: OperationMethods.factorial(a), OpType.POSTFIX),
-# "~": Operator("~", 6, lambda a: -a, OpType.PREFIX, associativity='R', accepted_right_types=[]),
-# "@": Operator("@", 5, lambda a, b: OperationMethods.average(a, b), OpType.INFIX),
-# "&": Operator("&", 5, lambda a, b: OperationMethods.minimum(a, b), OpType.INFIX),
-# "$": Operator("$", 5, lambda a, b: OperationMethods.maximum(a, b), OpType.INFIX),
-# "%": Operator("%", 4, lambda a, b: a % b, OpType.INFIX),
-# "#": Operator("#", 6, lambda a: OperationMethods.sum_digits(a), OpType.POSTFIX),
-# "unary_minus": Operator("unary_minus", 2.5, lambda a: -a, OpType.PREFIX, associativity='R')
+from PythonFiles import pythonConfig
+def accept_input()->None:
+    print("Please enter a valid mathematical expression, or \"quit\" to exit, or \"rules\" for the rules of the calculator!")
+    user_input = input("> ")
+    if user_input == "quit":
+        exit()
+    if user_input == "rules":
+        print(pythonConfig.CALCULATOR_RULES)
+        accept_input()
+        return
+    calculate_method(user_input)
+def calculate_method(user_input:str)->None:
+    my_calculator = Calculator()
+    try:
+        print(my_calculator.calculate(user_input))
+    except ZeroDivisionError:
+        print("ERROR: Division by zero")
+    except OverflowError:
+        print("ERROR: result is too large")
+    except ValueError as e:
+        print(f"ERROR: Math Error: {e}")
+    except Exception as e:
+        print(f"ERROR: Invalid Expression: {e}")
+    finally:
+        accept_input()
 def main():
-    print("Please enter a mathematical Expression.")
-    my_calc = Calculator()
-    exp = "(1.1.1)"
-    print(my_calc.calculate(exp))
+    print("Welcome to the Omega Calculator by Me! (noam)")
+    accept_input()
+    print("Bye Bye!")
+
+
+
 if __name__ == '__main__':
     main()
