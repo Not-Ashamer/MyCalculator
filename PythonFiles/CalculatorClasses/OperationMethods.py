@@ -18,5 +18,16 @@ def maximum(a:float,b:float)->float:
 def negation_special_check(token:str):
     """The tilde can only be placed to the right of a number, no operators allower, which is"""
     return token=="(" or str.isdigit(token)
-
+def sum_digits(a:float) ->float:
+    sign = -1 if a<0 else 1
+    a = a*sign
+    while a!=int(a):
+        a*=10
+    sum_of_digits=0
+    while a>0:
+        sum_of_digits+=a%10
+        a//=10
+    if sum_of_digits>10:
+        sum_of_digits=sum_digits(sum_of_digits)
+    return sum_of_digits*sign
 

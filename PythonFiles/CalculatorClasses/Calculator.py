@@ -16,7 +16,7 @@ def _init_operators() -> dict:
     """
     Creates and returns the dictionary of supported operators.
     """
-    mydict={
+    my_dict={
         "+": Operator("+", 1, lambda a, b: a + b, OpType.INFIX),
         "-": Operator("-", 1, lambda a, b: a - b, OpType.INFIX),
         "*": Operator("*", 2, lambda a, b: a * b, OpType.INFIX),
@@ -28,16 +28,31 @@ def _init_operators() -> dict:
         "&": Operator("&", 5, lambda a, b: OperationMethods.minimum(a, b), OpType.INFIX),
         "$": Operator("$", 5, lambda a, b: OperationMethods.maximum(a, b), OpType.INFIX),
         "%": Operator("%", 4, lambda a, b: a % b, OpType.INFIX),
+        "#": Operator("#",6,lambda a: OperationMethods.sum_digits(a), OpType.POSTFIX),
         "unary_minus": Operator("unary_minus",2.5, lambda a: -a, OpType.PREFIX, associativity='R')
         # Add more here
     }
-    return mydict
+    return my_dict
 
 
 def _simplify_expression(expression: str) -> str:
     """Returns a string without unnecessary characters, which makes tokenization easier and will more clearly find problems"""
     expression = expression.replace(" ", "") #remove whitespace entirely
     return expression
+
+
+def _read_number(expression: str, i: int) -> tuple:
+    """Helper to consume a number from the expression."""
+    start = i
+    dot_count=0
+    # simple check for digit or dot
+    while i < len(expression) and (HelperMethods.is_digit(expression[i]) or expression[i] == '.'):
+        if expression[i] == '.':
+            if dot_count != 0:
+                break
+            dot_count+=1
+        i += 1
+    return "".join(expression[start:i]), i
 
 
 class Calculator:
@@ -66,7 +81,7 @@ class Calculator:
         tokens = self._shunting_yard(tokens)
         print(f"Debug Tokens: {tokens}") # Temporary for testing
         ans = self._evaluate_postfix(tokens)
-        return ans if ans is not None else 0.6742069  # Placeholder (THE DAY THIS IS THE RESULT OF A CALCULATION I WILL KILL MYSELF)
+        return ans
 
     def _tokenize(self, expression: str) -> list:
         """
@@ -83,7 +98,7 @@ class Calculator:
 
             # 1. Handle Numbers (Digits or dots)
             if HelperMethods.is_digit(char) or char == '.':
-                number_str, new_i = self._read_number(expression, i)
+                number_str, new_i = _read_number(expression, i)
                 tokens.append(number_str)
                 i = new_i
                 continue
@@ -98,7 +113,7 @@ class Calculator:
                         i += 1
 
                     if i < length and (HelperMethods.is_digit(expression[i]) or expression[i] == '.'):
-                        number_str, new_i = self._read_number(expression, i)
+                        number_str, new_i = _read_number(expression, i)
 
                         if minus_count % 2 != 0:
                             number_str = "-" + number_str
@@ -131,13 +146,6 @@ class Calculator:
 
         return tokens
 
-    def _read_number(self, expression: str, i: int) -> tuple:
-        """Helper to consume a number from the expression."""
-        start = i
-        # simple check for digit or dot
-        while i < len(expression) and (HelperMethods.is_digit(expression[i]) or expression[i] == '.'):
-            i += 1
-        return "".join(expression[start:i]), i
     def _validate_expression(self, tokens: list) -> bool:
         """
         Returns True if the expression is syntactically valid, False otherwise.
@@ -212,13 +220,13 @@ class Calculator:
         if expression[index] != "-":
             return False
         if index>0:
-            previndex = index - 1
-            if expression[previndex] == ")":
+            prev_index = index - 1
+            if expression[prev_index] == ")":
                 return False
-            if str.isdigit(expression[previndex]):
+            if str.isdigit(expression[prev_index]):
                 return False
-            if expression[previndex] in self.operators:
-                return self.operators[expression[previndex]].op_type != OpType.POSTFIX
+            if expression[prev_index] in self.operators:
+                return self.operators[expression[prev_index]].op_type != OpType.POSTFIX
 
         return True
 
