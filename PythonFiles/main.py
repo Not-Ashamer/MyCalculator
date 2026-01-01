@@ -16,7 +16,7 @@ from PythonFiles.CalculatorClasses.Calculator import Calculator
 def main():
     print("Please enter a mathematical Expression.")
     my_calc = Calculator()
-    exp = "-(~(3!)) + 999# * (20 @ 60) --   - 100 / 2 & (4^2 $ 50 % 6)"
+    exp = "(1.1.1)"
     print(my_calc.calculate(exp))
 if __name__ == '__main__':
     main()

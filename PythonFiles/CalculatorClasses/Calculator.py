@@ -1,7 +1,6 @@
 from Exceptions.BasicInvalidExpressionException import BasicInvalidExpressionException
 from .Operator import Operator
 from .CalculatorEnums import OpType
-from math import pow #AND NOTHING ELSE!!!!
 from . import OperationMethods
 from . import HelperMethods
 from Exceptions.UnrecognizedCharacterException import UnrecognizedCharacterException
@@ -17,28 +16,24 @@ def _init_operators() -> dict:
     Creates and returns the dictionary of supported operators.
     """
     my_dict={
-        "+": Operator("+", 1, lambda a, b: a + b, OpType.INFIX),
-        "-": Operator("-", 1, lambda a, b: a - b, OpType.INFIX),
-        "*": Operator("*", 2, lambda a, b: a * b, OpType.INFIX),
-        "/": Operator("/", 2, lambda a, b: a / b, OpType.INFIX),
-        "^": Operator("^", 3, lambda a, b: pow(a, b), OpType.INFIX, associativity='R'),
+        "+": Operator("+", 1, lambda a, b: OperationMethods.add(a,b), OpType.INFIX),
+        "-": Operator("-", 1, lambda a, b: OperationMethods.subtract(a,b), OpType.INFIX),
+        "*": Operator("*", 2, lambda a, b: OperationMethods.multiply(a,b), OpType.INFIX),
+        "/": Operator("/", 2, lambda a, b: OperationMethods.divide(a,b), OpType.INFIX),
+        "^": Operator("^", 3, lambda a, b: OperationMethods.exponent(a,b), OpType.INFIX, associativity='R'),
         "!": Operator("!", 6, lambda a: OperationMethods.factorial(a), OpType.POSTFIX),
-        "~": Operator("~", 6, lambda a: -a, OpType.PREFIX, associativity='R',accepted_right_types=[]),
+        "~": Operator("~", 6, lambda a: OperationMethods.negation(a), OpType.PREFIX, associativity='R',accepted_right_types=[]),
         "@": Operator("@", 5, lambda a, b: OperationMethods.average(a, b), OpType.INFIX),
         "&": Operator("&", 5, lambda a, b: OperationMethods.minimum(a, b), OpType.INFIX),
         "$": Operator("$", 5, lambda a, b: OperationMethods.maximum(a, b), OpType.INFIX),
-        "%": Operator("%", 4, lambda a, b: a % b, OpType.INFIX),
+        "%": Operator("%", 4, lambda a, b: OperationMethods.modulus(a,b), OpType.INFIX),
         "#": Operator("#",6,lambda a: OperationMethods.sum_digits(a), OpType.POSTFIX),
-        "unary_minus": Operator("unary_minus",2.5, lambda a: -a, OpType.PREFIX, associativity='R')
+        "unary_minus": Operator("unary_minus",2.5, lambda a:OperationMethods.negation(a), OpType.PREFIX, associativity='R')
         # Add more here
     }
     return my_dict
 
 
-def _simplify_expression(expression: str) -> str:
-    """Returns a string without unnecessary characters, which makes tokenization easier and will more clearly find problems"""
-    expression = expression.replace(" ", "") #remove whitespace entirely
-    return expression
 
 
 def _read_number(expression: str, i: int) -> tuple:
@@ -68,8 +63,6 @@ class Calculator:
         The big method that does all the work. (The boss)
         Receives a raw string, processes it, and returns the result.
         """
-        # Step 0: Simplify the string to make tokenization simple
-        expression = _simplify_expression(expression)
         # Step 1: Tokenize (make a list of what matters from the string)
         tokens = self._tokenize(expression)
 
@@ -95,7 +88,10 @@ class Calculator:
 
         while i < length:
             char = expression[i]
-
+            # 0. Handle Whitespace
+            if char == " ":
+                i+=1
+                continue
             # 1. Handle Numbers (Digits or dots)
             if HelperMethods.is_digit(char) or char == '.':
                 number_str, new_i = _read_number(expression, i)
@@ -302,4 +298,6 @@ class Calculator:
                     stack.append(self.operators[item].apply(a))
                 continue
             raise UnrecognizedCharacterException("Value in postfix expression that is not a number or operator!")
+        if len(stack)==0:
+            raise IndexError("There are no values in postfix expression. Only Parentheses!!!")
         return stack.pop()

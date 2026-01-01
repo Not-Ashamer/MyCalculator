@@ -1,4 +1,35 @@
+from math import pow #AND NOTHING ELSE!!!
 
+def add(a:float,b:float)->float:
+    if a is None or b is None:
+        raise ValueError(f"ERROR: a is {a} and b is {b} in addition")
+    return a+b
+def subtract(a:float,b:float)->float:
+    if a is None or b is None:
+        raise ValueError(f"ERROR: a is {a} and b is {b} in subtraction")
+    return a-b
+def multiply(a:float,b:float)->float:
+    if a is None or b is None:
+        raise ValueError(f"ERROR: a is {a} and b is {b} in multiplication")
+    return a*b
+def divide(a:float,b:float)->float:
+    if a is None or b is None:
+        raise ValueError(f"ERROR: a is {a} and b is {b} in division")
+    return a/b
+def modulus(a:float,b:float)->float:
+    if a is None or b is None:
+        raise ValueError(f"ERROR: a is {a} and b is {b} in modulation")
+    if b==0:
+        raise ZeroDivisionError(f"ERROR: Division by zero")
+    return a%b
+def exponent(a:float,b:float)->float:
+    if a is None or b is None:
+        raise ValueError(f"a is {a} and b is {b} in exponent")
+    return pow(a,b)
+def negation(a:float)->float:
+    if a is None:
+        raise ValueError(f"a is {a} in negation")
+    return -a
 def factorial(n:float)->float:
     if n<0:
         raise ValueError("Factorial of negative number")
