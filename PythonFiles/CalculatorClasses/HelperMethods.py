@@ -33,3 +33,4 @@ def is_digit(char: str) -> bool:
         return False
     return "0" <= char <= "9"
     # Alternatively: return char.isdigit()
+

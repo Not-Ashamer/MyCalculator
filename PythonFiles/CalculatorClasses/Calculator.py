@@ -7,8 +7,8 @@ from . import HelperMethods
 from Exceptions.UnrecognizedCharacterException import UnrecognizedCharacterException
 
 
-def _is_valid_atom(token: str) -> bool:
-    """Returns True if the token is anNumber or parenthesis"""
+def _is_valid_operand(token: str) -> bool:
+    """Returns True if the token is a Number or parenthesis"""
     return HelperMethods.is_number(token) or token in "()"
 
 
@@ -34,6 +34,12 @@ def _init_operators() -> dict:
     return mydict
 
 
+def _simplify_expression(expression: str) -> str:
+    """Returns a string without unnecessary characters, which makes tokenization easier and will more clearly find problems"""
+    expression = expression.replace(" ", "") #remove whitespace entirely
+    return expression
+
+
 class Calculator:
     def __init__(self):
         """
@@ -48,19 +54,19 @@ class Calculator:
         Receives a raw string, processes it, and returns the result.
         """
         # Step 0: Simplify the string to make tokenization simple
-        expression = self._simplify_expression(expression)
+        expression = _simplify_expression(expression)
         # Step 1: Tokenize (make a list of what matters from the string)
-        tokens: list = self._tokenize(expression)
+        tokens = self._tokenize(expression)
 
         # Step 2: Validate (using the operator's given values, check that they're valid
         if  not self._validate_expression(tokens):
             raise BasicInvalidExpressionException(f"The expression {expression} is not valid.")
-
+        print("Before shunting yard: "+str(tokens))
         # Step 3: Parse (Shunting-Yard) & Evaluate
-#TODO: THE ACTUAL CALCULATION DIPSHIT
-
-        print(f"Debug Tokens: {tokens}")  # Temporary for testing
-        return 0.6742069  # Placeholder (THE DAY THIS IS THE RESULT OF A CALCULATION I WILL KILL MYSELF)
+        tokens = self._shunting_yard(tokens)
+        print(f"Debug Tokens: {tokens}") # Temporary for testing
+        ans = self._evaluate_postfix(tokens)
+        return ans if ans is not None else 0.6742069  # Placeholder (THE DAY THIS IS THE RESULT OF A CALCULATION I WILL KILL MYSELF)
 
     def _tokenize(self, expression: str) -> list:
         """
@@ -167,7 +173,7 @@ class Calculator:
                     return False
 
             # 3: Unknown tokens (Not an operator, number, or parenthesis)
-            elif not _is_valid_atom(token):
+            elif not _is_valid_operand(token):
                 return False
 
             i += 1
@@ -242,10 +248,50 @@ class Calculator:
 
         return False
 
-    def _simplify_expression(self, expression: str) -> str:
-        """Returns a string without unnecessary characters, which makes tokenization easier and will more clearly find problems"""
-        expression = expression.replace(" ", "") #remove whitespace entirely
-        return expression
+    def _shunting_yard(self, tokens: list) -> list:
+        stack = []
+        queue = []
+        for item in tokens:
+            if HelperMethods.is_number(item):
+                queue.append(item)
+                continue
+            if item == "(":
+                stack.append(item)
+                continue
+            if item in self.operators:
+                while stack and stack[-1] in self.operators:
+                    top =self.operators[stack[-1]]
+                    curr = self.operators[item]
+                    if top.precedence>curr.precedence or (top.precedence==curr.precedence and curr.associativity == 'L'):
+                        queue.append(stack.pop())
+                    else:
+                        break
+                stack.append(item)
+                continue
+            if item == ")":
+                while stack[-1] != "(":
+                    queue.append(stack.pop())
+                stack.pop()
+                continue
+            raise UnrecognizedCharacterException("Unrecognized character in expression.")
+        while stack:
+            queue.append(stack.pop())
+        return queue
 
-
-
+    def _evaluate_postfix(self, tokens: list) -> float:
+        stack =[]
+        for item in tokens:
+            if HelperMethods.is_number(item):
+                stack.append(item)
+                continue
+            if item in self.operators:
+                if self.operators[item].op_type == OpType.INFIX:
+                    b = float(stack.pop())
+                    a=float(stack.pop())
+                    stack.append(self.operators[item].apply(a,b))
+                else:
+                    a=float(stack.pop())
+                    stack.append(self.operators[item].apply(a))
+                continue
+            raise UnrecognizedCharacterException("Value in postfix expression that is not a number or operator!")
+        return stack.pop()
