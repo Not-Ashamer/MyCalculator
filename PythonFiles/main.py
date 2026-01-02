@@ -32,7 +32,7 @@ def calculate_method(user_input: str) -> None:
 
 
 def main():
-    print("Welcome to the Omega Calculator by Me!")
+    print("Welcome to the Calculator by Me!")
     accept_input()
     print("Bye Bye!")
 
