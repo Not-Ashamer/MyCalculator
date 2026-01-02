@@ -29,7 +29,7 @@ class ConsoleRedirector:
 class CalculatorGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Omega Calculator Console (GUI!!!)")
+        self.root.title("Calculator Console (GUI!!!)")
         self.root.geometry("600x400")
 
         self.calculator = Calculator()
