@@ -42,6 +42,8 @@ def exponent(a: float, b: float) -> float:
         raise ValueError(f"{a} is negative, cannot calculate root of negative number ")
     if a == 0 and b == 0:
         raise ValueError(f"0^0 is undefined")
+    if a==0 and b<0:
+        raise ZeroDivisionError(f"Zero cannot be raised to a negative power")
     return pow(a, b)
 
 
@@ -68,24 +70,29 @@ def factorial(a: float) -> float:
 
 
 def average(a: float, b: float) -> float:
+    if a is None or b is None:
+        raise ValueError(f"a is {a} and b is {b} in average")
     return (a + b) / 2
 
 
 def minimum(a: float, b: float) -> float:
+    if a is None or b is None:
+        raise ValueError(f"a is {a} and b is {b} in minimum")
     return a if a < b else b
 
 
 def maximum(a: float, b: float) -> float:
+    if a is None or b is None:
+        raise ValueError(f"a is {a} and b is {b} in maximum")
     return a if a > b else b
 
 
-def negation_special_check(token: str):
-    """The tilde can only be placed to the right of a number, no operators allower, which is"""
-    return token == "(" or str.isdigit(token)
 
 
 def sum_digits(a: float) -> float:
     """Sums the digits of a number repeatedly until it is single digit"""
+    if a is None:
+        raise ValueError(f"a is {a} in sum_digits")
     sign = -1 if a < 0 else 1
     a = a * sign
     while a != int(a):
