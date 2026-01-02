@@ -69,10 +69,8 @@ class Calculator:
 
         # Step 2: Validate (using the operator's given values, check that they're valid
         self._validate_expression(tokens)
-        # print("Before shunting yard: "+str(tokens))
-        # Step 3: Parse (Shunting-Yard) & Evaluate
-        tokens = self._shunting_yard(tokens)
-        # print(f"Debug Tokens: {tokens}") # Temporary for testing
+        # Step 3: Parse (Shunting Yard Algorithm) & Evaluate
+        tokens = self._convert_to_postfix(tokens)
         return self._evaluate_postfix(tokens)
 
     def _tokenize(self, expression: str) -> list:
@@ -251,7 +249,7 @@ class Calculator:
 
         return False
 
-    def _shunting_yard(self, tokens: list) -> list:
+    def _convert_to_postfix(self, tokens: list) -> list:
         """Receives a regular mathematical expression containing infix, prefix,and postfix operators,
            and converts it into postfix notation."""
         stack = []
