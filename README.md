@@ -1,4 +1,4 @@
-# OmegaCalculator
+# MyCalculator
 
 This program makes a very advanced calculator that accepts a string which represents a mathematical expression.
 The function should first make sure that the expression is a valid one, here meaning that it has at least one number,
