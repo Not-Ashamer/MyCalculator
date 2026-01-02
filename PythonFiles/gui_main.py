@@ -1,12 +1,15 @@
+import sys
 import tkinter as tk
 from tkinter import scrolledtext
-import sys
+
+from PythonFiles import pythonConfig
 from PythonFiles.CalculatorClasses.Calculator import Calculator
 from PythonFiles.Exceptions.BasicInvalidExpressionException import BasicInvalidExpressionException
 from PythonFiles.Exceptions.InvalidOperatorUsageException import InvalidOperatorUsageException
 from PythonFiles.Exceptions.InvalidParenthesisException import InvalidParenthesisException
 from PythonFiles.Exceptions.UnrecognizedCharacterException import UnrecognizedCharacterException
-from PythonFiles import pythonConfig
+
+
 class ConsoleRedirector:
     """A helper class that redirects print() statements to a Tkinter text widget."""
 
@@ -31,10 +34,9 @@ class CalculatorGUI:
 
         self.calculator = Calculator()
 
-
         # 1. console screen
         self.console_output = scrolledtext.ScrolledText(root, state='disabled', height=15, bg="#000000", fg="#FFFFFF",
-                                                        font=("Consolas", 10))
+                                                        font=("Consolas", 10),width=28)
         self.console_output.pack(fill='both', expand=True, padx=5, pady=5)
 
         # 2. input
@@ -48,7 +50,7 @@ class CalculatorGUI:
         sys.stdout = ConsoleRedirector(self.console_output)
 
         print("Welcome to my calculator!!!")
-        print("Type 'help' for rules or enter an expression.")
+        print("Type 'rules' for rules or enter an expression. (or quit to leave)")
         print("-" * 40)
 
     def process_input(self, event=None):
@@ -64,7 +66,7 @@ class CalculatorGUI:
         if expression.lower() == "quit":
             self.root.quit()
             return
-        if expression.lower() == "help":
+        if expression.lower() == "rules":
             print(pythonConfig.CALCULATOR_RULES)
             return
         try:
@@ -79,7 +81,8 @@ class CalculatorGUI:
 
         except ZeroDivisionError:
             print("Math Error: Division by Zero is not allowed.")
-
+        except OverflowError:
+            print("Math Error: Number too large.")
         except ValueError as e:
             print(f"Value Error: {e}")
 

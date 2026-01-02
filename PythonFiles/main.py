@@ -1,7 +1,10 @@
-from PythonFiles.CalculatorClasses.Calculator import Calculator
 from PythonFiles import pythonConfig
-def accept_input()->None:
-    print("Please enter a valid mathematical expression, or \"quit\" to exit, or \"rules\" for the rules of the calculator!")
+from PythonFiles.CalculatorClasses.Calculator import Calculator
+
+
+def accept_input() -> None:
+    print(
+        "Please enter a valid mathematical expression, or \"quit\" to exit, or \"rules\" for the rules of the calculator!")
     user_input = input("> ")
     if user_input == "quit":
         exit()
@@ -10,7 +13,9 @@ def accept_input()->None:
         accept_input()
         return
     calculate_method(user_input)
-def calculate_method(user_input:str)->None:
+
+
+def calculate_method(user_input: str) -> None:
     my_calculator = Calculator()
     try:
         print(my_calculator.calculate(user_input))
@@ -24,11 +29,12 @@ def calculate_method(user_input:str)->None:
         print(f"ERROR: Invalid Expression: {e}")
     finally:
         accept_input()
+
+
 def main():
     print("Welcome to the Omega Calculator by Me! (noam)")
     accept_input()
     print("Bye Bye!")
-
 
 
 if __name__ == '__main__':

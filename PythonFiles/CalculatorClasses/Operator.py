@@ -1,11 +1,11 @@
-from .CalculatorEnums import OpType
-from . import HelperMethods
 from PythonFiles.Exceptions.InvalidOperatorUsageException import InvalidOperatorUsageException
+from . import HelperMethods
+from .CalculatorEnums import OpType
 
 
 def _is_valid_neighbor(token: str, operators_dict: dict, allowed_op_types: list, checking_left: bool) -> bool:
     """
-    The universal validator.
+    The universal validator for operators.
     check_left=True  -> Validating the token to the Left (Looking for End of Value).
     check_left=False -> Validating the token to the Right (Looking for Start of Value).
     """
@@ -55,31 +55,29 @@ class Operator:
         # 1. CHECK LEFT SIDE
         # Required for: INFIX (5 + 5) and POSTFIX (5!)
         if self.op_type in [OpType.INFIX, OpType.POSTFIX]:
-            # Error: Missing Token
             if left_token is None:
                 raise InvalidOperatorUsageException(
-                    f"Error: Operator '{self.symbol}' is missing a value on the left."
+                    f"Operator '{self.symbol}' is missing a value on the left."
                 )
 
             # Check validity using accepted_left_types
             if not _is_valid_neighbor(left_token, operators_dict, self.accepted_left_types, checking_left=True):
                 raise InvalidOperatorUsageException(
-                    f"Error: Invalid token '{left_token}' before '{self.symbol}'."
+                    f"Invalid token '{left_token}' before '{self.symbol}'."
                 )
 
         # 2. CHECK RIGHT SIDE
         # Required for: INFIX (5 + 5) and PREFIX (~5)
         if self.op_type in [OpType.INFIX, OpType.PREFIX]:
-            # Error: Missing Token
             if right_token is None:
                 raise InvalidOperatorUsageException(
-                    f"Error: Operator '{self.symbol}' is missing a value on the right."
+                    f"Operator '{self.symbol}' is missing a value on the right."
                 )
 
             # Check validity using accepted_right_types
             if not _is_valid_neighbor(right_token, operators_dict, self.accepted_right_types, checking_left=False):
                 raise InvalidOperatorUsageException(
-                    f"Error: Invalid token '{right_token}' after '{self.symbol}'."
+                    f"Invalid token '{right_token}' after '{self.symbol}'."
                 )
 
     @staticmethod

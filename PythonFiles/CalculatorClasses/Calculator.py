@@ -1,10 +1,10 @@
-from PythonFiles.Exceptions import InvalidOperatorUsageException, InvalidParenthesisException
+from PythonFiles.Exceptions import InvalidParenthesisException
 from PythonFiles.Exceptions.BasicInvalidExpressionException import BasicInvalidExpressionException
-from .Operator import Operator
-from .CalculatorEnums import OpType
-from . import OperationMethods
-from . import HelperMethods
 from PythonFiles.Exceptions.UnrecognizedCharacterException import UnrecognizedCharacterException
+from . import HelperMethods
+from . import OperationMethods
+from .CalculatorEnums import OpType
+from .Operator import Operator
 
 
 def _is_valid_operand(token: str) -> bool:
@@ -16,37 +16,37 @@ def _init_operators() -> dict:
     """
     Creates and returns the dictionary of supported operators.
     """
-    my_dict={
-        "+": Operator("+", 1, lambda a, b: OperationMethods.add(a,b), OpType.INFIX),
-        "-": Operator("-", 1, lambda a, b: OperationMethods.subtract(a,b), OpType.INFIX),
-        "*": Operator("*", 2, lambda a, b: OperationMethods.multiply(a,b), OpType.INFIX),
-        "/": Operator("/", 2, lambda a, b: OperationMethods.divide(a,b), OpType.INFIX),
-        "^": Operator("^", 3, lambda a, b: OperationMethods.exponent(a,b), OpType.INFIX, associativity='R'),
+    my_dict = {
+        "+": Operator("+", 1, lambda a, b: OperationMethods.add(a, b), OpType.INFIX),
+        "-": Operator("-", 1, lambda a, b: OperationMethods.subtract(a, b), OpType.INFIX),
+        "*": Operator("*", 2, lambda a, b: OperationMethods.multiply(a, b), OpType.INFIX),
+        "/": Operator("/", 2, lambda a, b: OperationMethods.divide(a, b), OpType.INFIX),
+        "^": Operator("^", 3, lambda a, b: OperationMethods.exponent(a, b), OpType.INFIX, associativity='R'),
         "!": Operator("!", 6, lambda a: OperationMethods.factorial(a), OpType.POSTFIX),
-        "~": Operator("~", 6, lambda a: OperationMethods.negation(a), OpType.PREFIX, associativity='R',accepted_right_types=[]),
+        "~": Operator("~", 6, lambda a: OperationMethods.negation(a), OpType.PREFIX, associativity='R',
+                      accepted_right_types=[]),
         "@": Operator("@", 5, lambda a, b: OperationMethods.average(a, b), OpType.INFIX),
         "&": Operator("&", 5, lambda a, b: OperationMethods.minimum(a, b), OpType.INFIX),
         "$": Operator("$", 5, lambda a, b: OperationMethods.maximum(a, b), OpType.INFIX),
-        "%": Operator("%", 4, lambda a, b: OperationMethods.modulus(a,b), OpType.INFIX),
-        "#": Operator("#",6,lambda a: OperationMethods.sum_digits(a), OpType.POSTFIX),
-        "unary_minus": Operator("unary_minus",2.5, lambda a:OperationMethods.negation(a), OpType.PREFIX, associativity='R')
+        "%": Operator("%", 4, lambda a, b: OperationMethods.modulus(a, b), OpType.INFIX),
+        "#": Operator("#", 6, lambda a: OperationMethods.sum_digits(a), OpType.POSTFIX),
+        "unary_minus": Operator("unary_minus", 2.5, lambda a: OperationMethods.negation(a), OpType.PREFIX,
+                                associativity='R')
         # Add more here
     }
     return my_dict
 
 
-
-
 def _read_number(expression: str, i: int) -> tuple:
     """Helper to consume a number from the expression."""
     start = i
-    dot_count=0
+    dot_count = 0
     # simple check for digit or dot
     while i < len(expression) and (HelperMethods.is_digit(expression[i]) or expression[i] == '.'):
         if expression[i] == '.':
             if dot_count != 0:
                 break
-            dot_count+=1
+            dot_count += 1
         i += 1
     return "".join(expression[start:i]), i
 
@@ -68,13 +68,13 @@ class Calculator:
         tokens = self._tokenize(expression)
 
         # Step 2: Validate (using the operator's given values, check that they're valid
-        if  not self._validate_expression(tokens):
-            raise BasicInvalidExpressionException(f"The expression {expression} is not valid.")
-        #print("Before shunting yard: "+str(tokens))
+        self._validate_expression(tokens)
+        # print("Before shunting yard: "+str(tokens))
         # Step 3: Parse (Shunting-Yard) & Evaluate
         tokens = self._shunting_yard(tokens)
-        #print(f"Debug Tokens: {tokens}") # Temporary for testing
+        # print(f"Debug Tokens: {tokens}") # Temporary for testing
         return self._evaluate_postfix(tokens)
+
     def _tokenize(self, expression: str) -> list:
         """
         Scans the input string and converts it into a list of tokens.
@@ -89,7 +89,7 @@ class Calculator:
             char = expression[i]
             # 0. Handle Whitespace
             if char == " ":
-                i+=1
+                i += 1
                 continue
             # 1. Handle Numbers (Digits or dots)
             if HelperMethods.is_digit(char) or char == '.':
@@ -146,7 +146,7 @@ class Calculator:
         Returns True if the expression is syntactically valid, False otherwise.
         """
         # 1. Check for Empty Input
-        if len(tokens)==0:
+        if len(tokens) == 0:
             return False
 
         # 2. Check Parentheses Balance
@@ -155,7 +155,7 @@ class Calculator:
 
         # 3. Check Sequence Rules (Adjacent values, Operator neighbors, etc.)
         if not self._validate_token_sequence(tokens):
-            raise BasicInvalidExpressionException("The expression is invalid.")
+            raise BasicInvalidExpressionException("The expression structure is invalid.")
 
         return True
 
@@ -194,7 +194,7 @@ class Calculator:
 
         current_is_value = (HelperMethods.is_number(current_token) or
                             current_token == ")" or
-                            Operator.is_postfix(current_token,self.operators))
+                            Operator.is_postfix(current_token, self.operators))
         next_is_value = (HelperMethods.is_number(next_token) or
                          next_token == "(")
 
@@ -207,13 +207,14 @@ class Calculator:
         right = tokens[i + 1] if i + 1 < len(tokens) else None
         self.operators[token].check_neighbors(left, right, self.operators)
         return True
-    def _is_unary_negative(self, expression: list, index : int) -> bool:
+
+    def _is_unary_negative(self, expression: list, index: int) -> bool:
         """Determines if the given minus operator is binary or unary"""
-        if index<0 or type(expression[index])!=str:
+        if index < 0 or type(expression[index]) != str:
             return False
         if expression[index] != "-":
             return False
-        if index>0:
+        if index > 0:
             prev_index = index - 1
             if expression[prev_index] == ")":
                 return False
@@ -251,6 +252,8 @@ class Calculator:
         return False
 
     def _shunting_yard(self, tokens: list) -> list:
+        """Receives a regular mathematical expression containing infix, prefix,and postfix operators,
+           and converts it into postfix notation."""
         stack = []
         queue = []
         for item in tokens:
@@ -262,9 +265,10 @@ class Calculator:
                 continue
             if item in self.operators:
                 while stack and stack[-1] in self.operators:
-                    top =self.operators[stack[-1]]
+                    top = self.operators[stack[-1]]
                     curr = self.operators[item]
-                    if top.precedence>curr.precedence or (top.precedence==curr.precedence and curr.associativity == 'L'):
+                    if top.precedence > curr.precedence or (
+                            top.precedence == curr.precedence and curr.associativity == 'L'):
                         queue.append(stack.pop())
                     else:
                         break
@@ -283,6 +287,7 @@ class Calculator:
         return queue
 
     def _evaluate_postfix(self, tokens: list) -> float:
+        """Accepts a postfix-notated mathematical expression, calculates it, and returns the result."""
         stack = []
         for item in tokens:
             if HelperMethods.is_number(item):
