@@ -13,7 +13,7 @@ OMEGA CALCULATOR RULES & SYNTAX
    -----------------------------------------------------------------------------
     6  | Factorial|   !    | Postfix | n! (Non-negative integers only)
     6  | Digit Sum|   #    | Postfix | Sum of digits (e.g., 99# -> 18 -> 9)
-    6  | Tilde    |   ~    | Prefix  | Negation (~5 -> -5). Strict right-side rule.
+    6  | Negation |   ~    | Prefix  | Negation (~5 -> -5). Strict right-side rule.
     5  | Min      |   &    | Infix   | Returns smaller value (5 & 2 -> 2)
     5  | Max      |   $    | Infix   | Returns larger value (5 $ 8 -> 8)
     5  | Avg      |   @    | Infix   | Returns average (20 @ 60 -> 40)

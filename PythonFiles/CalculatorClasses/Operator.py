@@ -17,6 +17,8 @@ def _is_valid_neighbor(token: str, operators_dict: dict, allowed_op_types: list,
         return True
     if token in operators_dict:
         neighbor_op = operators_dict[token]
+        if token in allowed_op_types:
+            return True
         if neighbor_op.op_type in allowed_op_types:
             return True
     return False

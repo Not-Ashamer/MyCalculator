@@ -31,7 +31,7 @@ def _init_operators() -> dict:
         "%": Operator("%", 4, lambda a, b: OperationMethods.modulus(a, b), OpType.INFIX),
         "#": Operator("#", 6, lambda a: OperationMethods.sum_digits(a), OpType.POSTFIX),
         "unary_minus": Operator("unary_minus", 2.5, lambda a: OperationMethods.negation(a), OpType.PREFIX,
-                                associativity='R')
+                                associativity='R', accepted_right_types=["unary_minus"])
         # Add more here
     }
     return my_dict
