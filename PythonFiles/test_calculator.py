@@ -181,8 +181,11 @@ def test_postfix_after_operator(calc):
     ("(3! @ 4!) + (10 $ 5) - (20 & 100)", 5.0),
     ("(3!*2#+15%9)/3^(~1@3)&(0$1)", 6.0),
     ("3+~-3",6.0),
-    ("~-3!",6),
-    ("2---3!",-4)
+    ("~-3!",6.0),
+    ("2---3!",-4.0),
+    ("-1+7",6.0),
+    ("-2^4",-16.0),
+    ("2+--3!",8.0),
 ])
 def test_valid_expressions(calc, expression, expected):
     """Tests any possible expression you try from pytest parametrize"""
@@ -192,3 +195,11 @@ def test_unary_revised(calc):
         calc.calculate("--~--3")
     with pytest.raises(ValueError):
         calc.calculate("2--3!")
+    with pytest.raises(ValueError):
+        calc.calculate("~--3!")
+    with pytest.raises(InvalidOperatorUsageException):
+        calc.calculate("~--~-3")
+    with pytest.raises(InvalidOperatorUsageException):
+        calc.calculate("~~3")
+    with pytest.raises(InvalidOperatorUsageException):
+        calc.calculate("~~~3")
