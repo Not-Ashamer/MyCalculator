@@ -5,7 +5,7 @@ from PythonFiles.CalculatorClasses.Calculator import Calculator
 def accept_input() -> None:
     print(
         "Please enter a valid mathematical expression, or \"quit\" to exit, or \"rules\" for the rules of the calculator!")
-    user_input = input("> ")
+    user_input = input(">")
     if user_input == "quit":
         exit()
     if user_input == "rules":

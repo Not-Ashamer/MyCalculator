@@ -21,7 +21,7 @@ def _init_operators() -> dict:
         "-": Operator("-", 1, lambda a, b: OperationMethods.subtract(a, b), OpType.INFIX),
         "*": Operator("*", 2, lambda a, b: OperationMethods.multiply(a, b), OpType.INFIX),
         "/": Operator("/", 2, lambda a, b: OperationMethods.divide(a, b), OpType.INFIX),
-        "^": Operator("^", 3, lambda a, b: OperationMethods.exponent(a, b), OpType.INFIX, associativity='R'),
+        "^": Operator("^", 3, lambda a, b: OperationMethods.exponent(a, b), OpType.INFIX),
         "!": Operator("!", 6, lambda a: OperationMethods.factorial(a), OpType.POSTFIX),
         "~": Operator("~", 6, lambda a: OperationMethods.negation(a), OpType.PREFIX, associativity='R',
                       accepted_right_types=[]),
