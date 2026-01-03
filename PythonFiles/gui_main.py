@@ -72,7 +72,6 @@ class CalculatorGUI:
         try:
             result = self.calculator.calculate(expression)
             print(f"Result: {result}")
-
         except (BasicInvalidExpressionException,
                 InvalidOperatorUsageException,
                 InvalidParenthesisException,

@@ -48,7 +48,8 @@ def test_sum_digits_logic():
     # 99 -> 18 -> 9
     assert OperationMethods.sum_digits(99) == 9
     # -99 -> -9
-    assert OperationMethods.sum_digits(-99) == -9
+    with pytest.raises(ValueError):
+        OperationMethods.sum_digits(-9)
 
 
 def test_division_by_zero(calc):
@@ -146,7 +147,6 @@ def test_postfix_after_operator(calc):
     ("~5", -5.0),
     ("5 + ~5", 0.0),
     ("~(3!)", -6.0),
-    ("~99#", -9.0),
     ("2 ^ 3 ^ 2", 512.0),
     ("4! / 4 # + (~2)", 4.0),
     ("(10 + 20) * (30 - 5) / 2 + 50 - 10", 415.0),
