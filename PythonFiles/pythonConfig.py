@@ -1,5 +1,5 @@
 CALCULATOR_RULES = """
-OMEGA CALCULATOR RULES & SYNTAX
+CALCULATOR RULES & SYNTAX
 ================================================================================
 
 1. SUPPORTED NUMBERS
