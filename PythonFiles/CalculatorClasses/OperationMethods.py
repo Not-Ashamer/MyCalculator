@@ -60,7 +60,7 @@ def factorial(a: float) -> float:
         raise ValueError("Factorial is not defined for negative numbers")
     if a != int(a):
         raise ValueError(f"Factorial of non integer number {a}")
-    if a > 69: #result > 10**100
+    if a > 1000: #maximum recursion depth normally
         raise ValueError(f"Factorial too large")
     if a == 0 or a == 1:
         return 1
@@ -98,7 +98,7 @@ def sum_digits(a: float) -> float:
         raise ValueError(f"a is {a} in sum_digits")
     if a < 0:
         raise ValueError("Cannot sum digits of negative number")
-    # uncomment this these lines and remove the error and sum of negative numbers should be fine
+    # uncomment this these lines and remove the error and sum of negative numbers will be valid
     # sign = 1 if a>0 else -1
     # a=a*sign
     while a != int(a):
