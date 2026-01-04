@@ -98,7 +98,7 @@ def sum_digits(a: float) -> float:
         raise ValueError(f"a is {a} in sum_digits")
     if a < 0:
         raise ValueError("Cannot sum digits of negative number")
-    # uncomment this these lines and remove the error and sum of negative numbers will be valid
+    # uncomment this these lines and remove the error and sum of negative numbers will be valid.
     # sign = 1 if a>0 else -1
     # a=a*sign
     while a != int(a):
