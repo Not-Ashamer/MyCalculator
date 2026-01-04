@@ -60,6 +60,8 @@ def factorial(a: float) -> float:
         raise ValueError("Factorial is not defined for negative numbers")
     if a != int(a):
         raise ValueError(f"Factorial of non integer number {a}")
+    if a > 69: #result > 10**100
+        raise ValueError(f"Factorial too large")
     if a == 0 or a == 1:
         return 1
     a = int(a)
@@ -67,6 +69,7 @@ def factorial(a: float) -> float:
     for i in range(2, a + 1):
         factorial_sum *= i
     return factorial_sum
+
 
 
 def average(a: float, b: float) -> float:
